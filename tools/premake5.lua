@@ -18,7 +18,7 @@ project_names = {
   "PR03_02_FirstScene",
   "PR03_03_SolarSystem",
   "PR03_04_BasicMaterial",
-  --"PR03_05_CustomMaterial",
+  "PR03_05_CustomMaterial",
   --"PR03_06_Quad",
   --"PR03_07_Cube",
   --"PR03_08_Sphere",
