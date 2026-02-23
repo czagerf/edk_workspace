@@ -82,7 +82,7 @@ void InitScene() {
   drawable->set_HPR(0.0f, 0.0f, 0.0f);
   node1->addChild(drawable.get());
 
-  for (int i = 0; i < 4; i ++) {
+  for (int i = 1; i < 5; i ++) {
     drawable.alloc();
     drawable->set_geometry(cube_geo.get());
     drawable->set_material(quad_mat.get());
@@ -96,12 +96,12 @@ void InitScene() {
 
   //Creates the drawables (Geometry + Material + Settings):
   for (int i = 0; i < 360; i+=2) {
-    for (int j = 30; j < 34; j++) {
+    for (int j = 50; j < 80; j++) {
       drawable.alloc();
       drawable->set_geometry(cube_geo.get());
       drawable->set_material(quad_mat.get());
       drawable->set_material_settings(quad_mat_set.get());
-      drawable->set_position(sin(i*0.0174444)*j*5, -100.0f - (10.0f * rand() / RAND_MAX), cos(i * 0.0174444)*j*5);
+      drawable->set_position(sin(i*0.0174444)*j, -50.0f - (50.0f * rand() / RAND_MAX), cos(i * 0.0174444)*j);
       drawable->set_HPR(360.0f * rand() / RAND_MAX,
         360.0f * rand() / RAND_MAX,
         360.0f * rand() / RAND_MAX);
@@ -113,13 +113,13 @@ void InitScene() {
   root->addChild(node2);
 
   //Allocating and initializing the camera:
-  float pos[] = { 0.0f, 10.0f,5.0f };
-  float view[] = { 0.0f, 0.0f, 1.0f };
+  float pos[] = { 0.0f, 10.0f,-5.0f };
+  float target[] = { 0.0f, 0.0f, 1.0f };
   float ar = (float)kWindowWidth / (float)kWindowHeight;
   GameState.camera.alloc();
   GameState.camera->set_position(pos);
-  GameState.camera->set_view_direction(view);
-  GameState.camera->setupPerspective(70.0f, ar, 0.1f, 300.0f);
+  GameState.camera->set_view_target(target);
+  GameState.camera->setupPerspective(70.0f, ar, 0.1f, 200.0f);
   GameState.camera->set_clear_color(0.9f, 1.0f, 0.9f, 1.0f);
   EDK::dev::GPUManager::CheckGLError("Prepare END");
 }
@@ -129,19 +129,6 @@ void UpdateFn() {
   float speed = 10.0f;
   GameState.root->child(0)->set_rotation_y(esat::Time() * 0.001f * speed);
   GameState.root->child(1)->set_rotation_y(esat::Time() * 0.001f * -speed);
-
-
-  //Orbital camera:
-
-  double mx = esat::MousePositionX();
-  double my = esat::MousePositionY();
-  double p = sin(-my / 200.0f);
-  float pos[] = { 0.0f,10.0f,5.0f };
-  float view[] = { -pos[0], -pos[1], -pos[2] };
-  GameState.camera->set_position(pos);
-  GameState.camera->set_view_direction(view);
-  GameState.camera->set_clear_color(0.9f, 1.0f, 0.9f, 1.0f);
-
 }
 
 void RenderFn() {
