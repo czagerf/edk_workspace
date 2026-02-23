@@ -1,10 +1,10 @@
 /*
- *
+ * 
  * Ivan Sancho as Unreal Authorized Instructor, 2022-23
  * Graphics Programming
- *
+ * 
  * PR03_01_Demo.cc
- *
+ * 
  */
 
 
@@ -18,6 +18,7 @@
 #include "EDK/edk_geometry.h"
 #include "EDK/edk_camera.h"
 #include "EDK/edk_drawable.h"
+#include "EDK/edk_material_diffuse.h"
 #include "EDK/edk_material_diffuse_texture.h"
 #include "EDK/edk_texture.h"
 #include "EDK/dev/edk_gpu_manager.h"
@@ -25,8 +26,11 @@
 #include "ESAT_extra/imgui.h"
 #include "EDK/dev/edk_opengl.h"
 
+#include "material_basic.h"
 
- //Unnamed struct and it's unique instance:
+
+
+//Unnamed struct and it's unique instance:
 struct {
   EDK::ref_ptr<EDK::Camera> camera;
   EDK::ref_ptr<EDK::Node> root;
@@ -43,10 +47,10 @@ void InitScene() {
   esat::DrawSetFillColor(255, 255, 255, 128);
 
   EDK::dev::GPUManager::CheckGLError("Initializing the scene...");
-
+  
   //Creating a cube:
   EDK::ref_ptr<EDK::Geometry> cube_geo;
-  EDK::CreateCube(&cube_geo, 1.0f, true, true);
+  EDK::CreateCube(&cube_geo);
 
   //Loading texture:
   EDK::ref_ptr<EDK::Texture> texture;
@@ -57,94 +61,61 @@ void InitScene() {
   }
 
   //Initializing the material and its settings:
-  EDK::ref_ptr<EDK::MatDiffuseTexture> quad_mat;
-  quad_mat.alloc();
-  EDK::ref_ptr<EDK::MatDiffuseTexture::Settings> quad_mat_set;
-  quad_mat_set.alloc();
-  float color[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-  quad_mat_set->set_color(color);
-  quad_mat_set->set_texture(texture.get());
+  EDK::ref_ptr<EDK::MaterialBasic> cube_mat;
+  cube_mat.alloc();
+  cube_mat->init();
+  EDK::ref_ptr<EDK::MaterialBasic::MaterialBasicSettings> cube_mat_set;
+  cube_mat_set.alloc();
+  
+  float color[] = { 1.0f, 0.0f, 0.0f, 1.0f };
+  cube_mat_set->set_color(color);
 
   //Allocating root node:
-  EDK::ref_ptr<EDK::Node> node_1;
-  EDK::ref_ptr<EDK::Node> node_2;
   EDK::Node* root = GameState.root.alloc();
-  EDK::Node* node1 = node_1.alloc();
-  EDK::Node* node2 = node_2.alloc();
 
   //Creates the drawables (Geometry + Material + Settings):
   EDK::ref_ptr<EDK::Drawable> drawable;
+  
   drawable.alloc();
   drawable->set_geometry(cube_geo.get());
-  drawable->set_material(quad_mat.get());
-  drawable->set_material_settings(quad_mat_set.get());
-  drawable->set_position(0.0f, 0.0f, 0.0f);
-  drawable->set_HPR(0.0f, 0.0f, 0.0f);
+  drawable->set_material(cube_mat.get());
+  drawable->set_material_settings(cube_mat_set.get());
+  drawable->set_position(0.0f,0.0f,0.0f);
+  /*drawable->set_HPR(360.0f * rand() / RAND_MAX,
+              360.0f * rand() / RAND_MAX, 
+              360.0f * rand() / RAND_MAX);
+*/
   root->addChild(drawable.get());
 
-  //Creates the drawables (Geometry + Material + Settings):
-  for (int i = 0; i < 360; i+=2) {
-    for (int j = 10; j < 30; j++) {
-      drawable.alloc();
-      drawable->set_geometry(cube_geo.get());
-      drawable->set_material(quad_mat.get());
-      drawable->set_material_settings(quad_mat_set.get());
-      drawable->set_position(sin(i*0.0174444)*j*3, -20.0f - (50.0f * rand() / RAND_MAX), cos(i * 0.0174444)*j*3);
-      drawable->set_HPR(360.0f * rand() / RAND_MAX,
-        360.0f * rand() / RAND_MAX,
-        360.0f * rand() / RAND_MAX);
-      node1->addChild(drawable.get());
-    }
-  }
-
-  for (int i = 0; i < 4; i++) {
-      drawable.alloc();
-      drawable->set_geometry(cube_geo.get());
-      drawable->set_material(quad_mat.get());
-      drawable->set_material_settings(quad_mat_set.get());
-      drawable->set_position(sin(6.8 * i) * i * 3, -10.0f - 2.0f * i, cos(6.8 * i) * i * 3);
-      drawable->set_HPR(360.0f * rand() / RAND_MAX,
-          360.0f * rand() / RAND_MAX,
-          360.0f * rand() / RAND_MAX);
-      node2->addChild(drawable.get());
-  }
-
-  root->addChild(node1);
-  root->addChild(node2);
-
   //Allocating and initializing the camera:
-  float pos[] = { 0.0f, 10.0f,5.0f };
+  float pos[] = { 0.0f, 2.0f, 5.0f };
   float target[] = { 0.0f, 0.0f, 0.0f };
-  float ar = (float)kWindowWidth / (float)kWindowHeight;
+  float ar = (float) kWindowWidth / (float) kWindowHeight;
   GameState.camera.alloc();
   GameState.camera->set_position(pos);
   GameState.camera->set_view_target(target);
-  GameState.camera->setupPerspective(80.0f, ar, 0.1f, 300.0f);
-  GameState.camera->set_clear_color(0.9f, 1.0f, 0.9f, 1.0f);
+  GameState.camera->setupPerspective(70.0f, ar, 0.1f, 100.0f);
+  GameState.camera->set_clear_color(1.0f,1.0f,1.0f,1.0f);
   EDK::dev::GPUManager::CheckGLError("Prepare END");
 }
 
 void UpdateFn() {
   //Updates the root node:
-  float speed1 = -10.0f;
-  float speed2 = 5.0f;
-  float speed3 = -20.0f;
-  GameState.root->child(0)->set_rotation_y(esat::Time() * 0.001f * speed1);
-  GameState.root->child(1)->set_rotation_y(esat::Time() * 0.001f * speed2);
-  GameState.root->child(2)->set_rotation_y(esat::Time() * 0.001f * speed3);
-
+  float speed = 20.0f;
+  GameState.root->child(0)->set_rotation_y(esat::Time() * 0.001f * speed);
 
   //Orbital camera:
-
-  double mx = esat::MousePositionX();
+  /*double mx = esat::MousePositionX();
   double my = esat::MousePositionY();
-  double p = sin(-my / 200.0f);
-  float pos[] = { 0.0f,10.0f,5.0f };
+  double p = sin(-my / 200.0f) * 220.0f;
+  float pos[] = { (float) (p * cos(mx * 0.01)),
+                  (float) (220.0 * cos(-my / 200.0)),
+                  (float) (p * sin(mx * 0.01)) };
   float view[] = { -pos[0], -pos[1], -pos[2] };
   GameState.camera->set_position(pos);
   GameState.camera->set_view_direction(view);
-  GameState.camera->set_clear_color(0.9f, 1.0f, 0.9f, 1.0f);
-
+  GameState.camera->set_clear_color(1.0f, 1.0f, 1.0f, 1.0f);
+  */
 }
 
 void RenderFn() {
@@ -171,7 +142,7 @@ int esat::main(int argc, char** argv) {
   double dt = 0.0;
   double last_time = esat::Time();
   while (!esat::IsSpecialKeyDown(esat::kSpecialKey_Escape) &&
-    esat::WindowIsOpened()) {
+         esat::WindowIsOpened()) {
     UpdateFn();
     RenderFn();
     dt = esat::Time() - last_time;

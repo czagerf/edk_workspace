@@ -35,69 +35,109 @@ struct {
 const int kWindowWidth = 1024;
 const int kWindowHeight = 768;
 
+int degrees = 0;
+
 
 void InitScene() {
-  //Initializing the font:
-  esat::DrawSetTextFont("./test/Font.ttf");
-  esat::DrawSetTextSize(18);
-  esat::DrawSetFillColor(255, 255, 255, 128);
-
-  EDK::dev::GPUManager::CheckGLError("Initializing the scene...");
+  //Allocating root node:
+  EDK::Node* root = GameState.root.alloc();  
   
-  //Creating a cube:
-  EDK::ref_ptr<EDK::Geometry> cube_geo;
-  EDK::CreateCube(&cube_geo, 1.0f, true, true);
+  //Material, Material Settings
+  EDK::ref_ptr<EDK::Texture> cube_texture;
+  EDK::Texture::Load("./test/T_Chopper.jpg",&cube_texture); //alloc inside
+  EDK::ref_ptr<EDK::MatDiffuseTexture> cube_mat;
+  cube_mat.alloc();
+  EDK::ref_ptr<EDK::MatDiffuseTexture::Settings> cube_mat_set;
+  cube_mat_set.alloc();
+  float color[4] = { 1.0f,1.0f,1.0f,1.0f };
+  cube_mat_set->set_color(color);
+  cube_mat_set->set_texture(cube_texture.get());
 
-  //Loading texture:
-  EDK::ref_ptr<EDK::Texture> texture;
-  EDK::Texture::Load("./test/T_EDK_Logo.png", &texture);
-  if (!texture) {
-    printf("Can't load texture.png\n");
-    exit(-2);
+  EDK::ref_ptr<EDK::Texture> cube_texture2;
+  EDK::Texture::Load("./test/T_Postpro.png", &cube_texture2); //alloc inside
+  EDK::ref_ptr<EDK::MatDiffuseTexture> cube_mat2;
+  cube_mat2.alloc();
+  EDK::ref_ptr<EDK::MatDiffuseTexture::Settings> cube_mat_set2;
+  cube_mat_set2.alloc();
+  cube_mat_set2->set_color(color);
+  cube_mat_set2->set_texture(cube_texture2.get());
+
+  //Geometry
+  EDK::ref_ptr<EDK::Geometry> cube_geo;
+
+  EDK::scoped_array<EDK::ref_ptr<EDK::Geometry>> geometries;
+  EDK::scoped_array<char> error_log;
+  EDK::LoadObj("./test/SM_Suzanne.obj", &geometries, &error_log);
+  
+  EDK::CreateCube(&cube_geo);
+
+  //Drawable
+  EDK::ref_ptr<EDK::Drawable> cube_drawable;
+  cube_drawable.alloc();
+  cube_drawable->set_geometry(cube_geo.get());
+  cube_drawable->set_material(cube_mat.get());
+  cube_drawable->set_material_settings(cube_mat_set.get());
+  float pos_cube[3] = { 2.0f,0.0f,0.0f};
+  cube_drawable->set_position(pos_cube);
+
+  //Drawable
+
+  EDK::ref_ptr<EDK::Drawable> cube_drawable2;
+  cube_drawable2.alloc();
+  cube_drawable2->set_geometry(cube_geo.get());
+  cube_drawable2->set_material(cube_mat2.get());
+  cube_drawable2->set_material_settings(cube_mat_set2.get());
+  float pos_cube2[3] = { -2.0f,0.0f,0.0f };
+  cube_drawable->set_position(pos_cube2);
+
+  root->addChild(cube_drawable.get());
+  root->addChild(cube_drawable2.get());
+
+  for (int i = 0; i < geometries.size(); i++) {
+      EDK::ref_ptr<EDK::Drawable> suzane_drawable;
+      suzane_drawable.alloc();
+      suzane_drawable->set_geometry(geometries[i].get());
+      suzane_drawable->set_material(cube_mat2.get());
+      suzane_drawable->set_material_settings(cube_mat_set2.get());
+      float pos_cube_tmp[3] = {0.0f,2.0f,0.0f };
+      suzane_drawable->set_position(pos_cube_tmp);      
+
+      root->addChild(suzane_drawable.get());
   }
 
-  //Initializing the material and its settings:
-  EDK::ref_ptr<EDK::MatDiffuseTexture> quad_mat;
-  quad_mat.alloc();
-  EDK::ref_ptr<EDK::MatDiffuseTexture::Settings> quad_mat_set;
-  quad_mat_set.alloc();
-  float color[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-  quad_mat_set->set_color(color);
-  quad_mat_set->set_texture(texture.get());
-
-  //Allocating root node:
-  EDK::Node* root = GameState.root.alloc();
-
-  //Creates the drawables (Geometry + Material + Settings):
-  EDK::ref_ptr<EDK::Drawable> drawable;
-  drawable.alloc();
-  drawable->set_geometry(cube_geo.get());
-  drawable->set_material(quad_mat.get());
-  drawable->set_material_settings(quad_mat_set.get());
-  drawable->set_position(0.0f, 0.0f, 0.0f);
-  drawable->set_HPR(0.0f,0.0f,0.0f);
-  root->addChild(drawable.get());
-
   //Allocating and initializing the camera:
-  float pos[] = { -0.0f, 0.0f,3.5f };
-  float view[] = { 0.0f, 0.0f, 1.0f };
+  float pos[] = { 0.0f, 4.0f,6.0f };
+  float target[] = { 0.0f, 0.0f, 0.0f };
   float ar = (float) kWindowWidth / (float) kWindowHeight;
   GameState.camera.alloc();
   GameState.camera->set_position(pos);
-  GameState.camera->set_view_direction(view);
-  GameState.camera->setupPerspective(70.0f, ar, 0.1f, 100.0f);
-  GameState.camera->set_clear_color(0.9f, 1.0f, 0.9f, 1.0f);
+  GameState.camera->set_view_target(target);
+  GameState.camera->setupPerspective(60.0f, ar, 0.1f, 100.0f);
+  GameState.camera->set_clear_color(1.0f, 1.0f, 1.0f, 1.0f);
   EDK::dev::GPUManager::CheckGLError("Prepare END");
 }
 
 void UpdateFn() {
   //Updates the root node:
   float speed = -15.0f;
-  GameState.root->set_rotation_x(esat::Time() * 0.001f * speed);
+  float radius = 3.0f;
+
+  for (int i = 0; i < GameState.root->num_children(); i++) {
+      if (i >= 2) {
+          GameState.root->child(i)->set_rotation_y(esat::Time() * 0.001f * speed);
+      }
+      else if (i == 0) {
+          GameState.root->child(i)->set_position(sin(degrees * 0.0174444)*radius,0.0f, cos(degrees * 0.0174444)* radius);
+      }
+      else if (i == 1) {
+          GameState.root->child(i)->set_position(sin((degrees+180) * 0.0174444)* radius, 0.0f, cos((degrees + 180) * 0.0174444)* radius);
+      }
+      degrees++;
+  }
 
   //Orbital camera:
   
-  double mx = esat::MousePositionX();
+  /*double mx = esat::MousePositionX();
   double my = esat::MousePositionY();
   double p = sin(-my / 200.0f) ;
   float pos[] = { 0.0f,0.0f,3.5 };
@@ -105,6 +145,7 @@ void UpdateFn() {
   GameState.camera->set_position(pos);
   GameState.camera->set_view_direction(view);
   GameState.camera->set_clear_color(0.9f, 1.0f, 0.9f, 1.0f);
+  */
   
 }
 
