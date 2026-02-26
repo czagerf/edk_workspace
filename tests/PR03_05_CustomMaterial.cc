@@ -54,11 +54,29 @@ void InitScene() {
 
   //Loading texture:
   EDK::ref_ptr<EDK::Texture> texture;
-  EDK::Texture::Load("./test/T_EDK_Logo.png", &texture);
+  EDK::Texture::Load("./test/T_Postpro.png", &texture);
   if (!texture) {
     printf("Can't load texture.png\n");
     exit(-2);
   }
+
+  EDK::ref_ptr<EDK::Texture> texture2;
+  EDK::Texture::Load("./test/T_EDK_Logo.png", &texture2);
+  if (!texture2) {
+      printf("Can't load texture.png\n");
+      exit(-2);
+  }
+  EDK::ref_ptr<EDK::Texture> texture3;
+  EDK::Texture::Load("./test/T_Rainbow.png", &texture3);
+  if (!texture3) {
+      printf("Can't load texture.png\n");
+      exit(-2);
+  }
+
+  //Allocating root node:
+  EDK::Node* root = GameState.root.alloc();
+  EDK::ref_ptr<EDK::Node> node_1;
+  node_1.alloc();
 
   //Initializing the material and its settings:
   EDK::ref_ptr<EDK::MaterialCustom> cube_mat;
@@ -69,18 +87,6 @@ void InitScene() {
   
   float color[] = { 1.0f, 0.0f, 0.0f, 1.0f };
   cube_mat_set->set_color(color);
-
-  EDK::ref_ptr<EDK::MaterialCustom> cube_mat2;
-  cube_mat2.alloc();
-  cube_mat2->init("./test/vertex2.vs", "./test/fragment2.fs");
-  EDK::ref_ptr<EDK::MaterialCustom::MaterialCustomSettings> cube_mat2_set;
-  cube_mat2_set.alloc();
-
-  float color2[] = { 1.0f, 0.0f, 1.0f, 1.0f };
-  cube_mat2_set->set_color(color2);
-
-  //Allocating root node:
-  EDK::Node* root = GameState.root.alloc();
 
   //Creates the drawables (Geometry + Material + Settings):
   EDK::ref_ptr<EDK::Drawable> drawable;
@@ -94,8 +100,16 @@ void InitScene() {
               360.0f * rand() / RAND_MAX, 
               360.0f * rand() / RAND_MAX);
 */
-  root->addChild(drawable.get());
+  node_1->addChild(drawable.get());
 
+  EDK::ref_ptr<EDK::MaterialCustom> cube_mat2;
+  cube_mat2.alloc();
+  cube_mat2->init("./test/vertex2.vs", "./test/fragment2.fs");
+  EDK::ref_ptr<EDK::MaterialCustom::MaterialTextureCustomSettings> cube_mat2_set;
+  cube_mat2_set.alloc();
+  cube_mat2_set->set_texture(texture, 0);
+  cube_mat2_set->set_texture(texture2, 1);
+  cube_mat2_set->set_texture(texture3, 2);
 
   EDK::ref_ptr<EDK::Drawable> drawable2;
 
@@ -108,10 +122,9 @@ void InitScene() {
               360.0f * rand() / RAND_MAX,
               360.0f * rand() / RAND_MAX);
 */
-  root->addChild(drawable2.get());
+  node_1->addChild(drawable2.get());
 
-
-
+  root->addChild(node_1.get());
 
   //Allocating and initializing the camera:
   float pos[] = { 0.0f, 2.0f, 5.0f };
@@ -128,9 +141,12 @@ void InitScene() {
 void UpdateFn() {
   //Updates the root node:
   float speed = 20.0f;
-  GameState.root->child(0)->set_rotation_y(esat::Time() * 0.001f * speed);
-  GameState.root->child(1)->set_rotation_y(esat::Time() * 0.001f * -speed);
 
+  EDK::Node* node;
+  node = GameState.root->child(0);
+  node->set_rotation_y(esat::Time() * 0.001f * speed);
+  node->child(0)->set_rotation_y(esat::Time() * 0.001f * speed*5);
+  node->child(1)->set_rotation_y(esat::Time() * 0.001f * -speed*10);
 
   //Orbital camera:
   /*double mx = esat::MousePositionX();

@@ -13,6 +13,7 @@
 #include "ESAT/math.h"
 #include "EDK/edk_ref_ptr.h"
 #include "EDK/edk_material.h"
+#include "EDK/edk_texture.h"
 #include "EDK/edk_material_settings.h"
 #include "EDK/dev/edk_program.h"
 #include "EDK/dev/edk_shader.h"
@@ -56,6 +57,41 @@ class MaterialCustom : public EDK::Material {
       return *this;
     }
     float color_[4];
+  }; //MaterialCustomSettings
+
+
+  class MaterialTextureCustomSettings : public EDK::MaterialSettings {
+  public:
+      MaterialTextureCustomSettings() {}
+      void set_texture(EDK::ref_ptr<EDK::Texture> t,int index) {
+          texture_[index] = t;
+      }
+      const EDK::ref_ptr<EDK::Texture> texture(int index) const {
+          return texture_[index];
+      }
+  protected:
+      virtual ~MaterialTextureCustomSettings() {}
+  private:
+      MaterialTextureCustomSettings(const MaterialTextureCustomSettings& other) {
+          texture_[0] = other.texture_[0];
+          texture_[1] = other.texture_[1];
+          texture_[2] = other.texture_[2];
+      }
+      MaterialTextureCustomSettings(MaterialTextureCustomSettings&& other) {
+          texture_[0] = other.texture_[0];
+          texture_[1] = other.texture_[1];
+          texture_[2] = other.texture_[2];
+          other.texture_[0].release();
+          other.texture_[1].release();
+          other.texture_[2].release();
+      }
+      MaterialTextureCustomSettings& operator=(const MaterialTextureCustomSettings& other) {
+          texture_[0] = other.texture_[0];
+          texture_[1] = other.texture_[1];
+          texture_[2] = other.texture_[2];
+          return *this;
+      }
+      EDK::ref_ptr<EDK::Texture> texture_[3];
   }; //MaterialCustomSettings
 
 

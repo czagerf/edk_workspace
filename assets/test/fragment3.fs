@@ -1,5 +1,6 @@
 #version 330
 
+uniform vec4 u_color;
 uniform sampler2D u_texture_00;
 uniform sampler2D u_texture_01;
 uniform sampler2D u_texture_02;

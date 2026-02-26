@@ -131,11 +131,34 @@ namespace EDK {
         //... and use the uniforms located in the material settings!
         program_->use();
         typedef MaterialCustomSettings MBS;
+        typedef MaterialTextureCustomSettings MBTS;
         const MBS* ms = dynamic_cast<const MBS*>(mat);
+
         if (ms) {
             int loc = program_->get_uniform_position("u_color");
             program_->set_uniform_value(loc, EDK::Type::T_FLOAT_4, ms->color());
             return true;
+        }
+        else {
+            const MBTS* mts = dynamic_cast<const MBTS*>(mat);
+            if (mts) {
+                int tex_loc = program_->get_uniform_position("u_texture_00");
+                int slot = 0;
+                mts->texture(slot)->bind(slot);
+                program_->set_uniform_value(tex_loc, EDK::Type::T_INT_1,&slot);
+
+                tex_loc = program_->get_uniform_position("u_texture_01");
+                slot = 1;
+                mts->texture(slot)->bind(slot);
+                program_->set_uniform_value(tex_loc, EDK::Type::T_INT_1, &slot);
+
+                tex_loc = program_->get_uniform_position("u_texture_02");
+                slot = 2;
+                mts->texture(slot)->bind(slot);
+                program_->set_uniform_value(tex_loc, EDK::Type::T_INT_1, &slot);
+
+                return true;
+            }
         }
 
         return false;
