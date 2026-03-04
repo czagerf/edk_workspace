@@ -12,4 +12,5 @@ xcopy /s /d /Y .\..\assets .\..\build\PR03_03_SolarSystem\vs2022
 xcopy /s /d /Y .\..\assets .\..\build\PR03_04_BasicMaterial\vs2022
 xcopy /s /d /Y .\..\assets .\..\build\PR03_05_CustomMaterial\vs2022
 xcopy /s /d /Y .\..\assets .\..\build\PR03_06_Quad\vs2022
+xcopy /s /d /Y .\..\assets .\..\build\PR03_07_Cube\vs2022
 pause

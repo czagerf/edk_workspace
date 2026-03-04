@@ -20,7 +20,7 @@ class CubeCustom : public EDK::Geometry {
 
   void init8v(const float cube_size = 1.0f);
   void init24v(const float cube_size = 1.0f);
-  virtual bool bindAttribute(const Attribute a,
+  virtual const bool bindAttribute(const Attribute a,
                    unsigned int where_to_bind_attribute) const override;
   virtual void render() const override;
 
