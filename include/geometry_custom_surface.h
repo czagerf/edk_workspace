@@ -19,8 +19,7 @@ class SurfaceCustom : public EDK::Geometry {
  public:
   SurfaceCustom();
 
-  void init(const float* surface_points,
-            const int num_heights = 4, const int num_revs = 4);
+  void init(const float* surface_points, const int num_revs = 4);
   virtual const bool bindAttribute(const Attribute a,
                        unsigned int where_to_bind_attribute) const override;
   virtual void render() const override;

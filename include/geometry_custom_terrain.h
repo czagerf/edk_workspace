@@ -22,10 +22,13 @@ class TerrainCustom : public EDK::Geometry {
  public:
   TerrainCustom();
 
+
+  //Vertices: (num_cols+1)*(num_rows+1)
+  //Normal: (0,1,0)
   void init(const int num_cols = 4, const int num_rows = 4,
             const float height_mult = 1.0f, const float size = 1.0f,
             const bool is_centered = true);
-  virtual bool bindAttribute(const Attribute a,
+  virtual const bool bindAttribute(const Attribute a,
                  unsigned int where_to_bind_attribute) const override;
   virtual void render() const override;
 

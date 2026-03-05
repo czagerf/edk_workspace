@@ -13,4 +13,7 @@ xcopy /s /d /Y .\..\assets .\..\build\PR03_04_BasicMaterial\vs2022
 xcopy /s /d /Y .\..\assets .\..\build\PR03_05_CustomMaterial\vs2022
 xcopy /s /d /Y .\..\assets .\..\build\PR03_06_Quad\vs2022
 xcopy /s /d /Y .\..\assets .\..\build\PR03_07_Cube\vs2022
+xcopy /s /d /Y .\..\assets .\..\build\PR03_08_Sphere\vs2022
+xcopy /s /d /Y .\..\assets .\..\build\PR03_09_Surface\vs2022
+xcopy /s /d /Y .\..\assets .\..\build\PR03_11_Terrain\vs2022
 pause
