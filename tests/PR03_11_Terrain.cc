@@ -28,6 +28,7 @@
 
 #include "material_basic.h"
 
+#include "geometry_custom_terrain.h"
 
 
 //Unnamed struct and it's unique instance:
@@ -49,26 +50,19 @@ void InitScene() {
   EDK::dev::GPUManager::CheckGLError("Initializing the scene...");
   
   //Creating a cube:
-  EDK::ref_ptr<EDK::Geometry> cube_geo;
-  EDK::CreateCube(&cube_geo);
-
-  //Loading texture:
-  EDK::ref_ptr<EDK::Texture> texture;
-  EDK::Texture::Load("./test/T_EDK_Logo.png", &texture);
-  if (!texture) {
-    printf("Can't load texture.png\n");
-    exit(-2);
-  }
+  EDK::ref_ptr<EDK::TerrainCustom> terrain_geo;
+  terrain_geo.alloc();
+  terrain_geo->init();
 
   //Initializing the material and its settings:
-  EDK::ref_ptr<EDK::MaterialBasic> cube_mat;
-  cube_mat.alloc();
-  cube_mat->init();
-  EDK::ref_ptr<EDK::MaterialBasic::MaterialBasicSettings> cube_mat_set;
-  cube_mat_set.alloc();
+  EDK::ref_ptr<EDK::MaterialBasic> terrain_mat;
+  terrain_mat.alloc();
+  terrain_mat->init();
+  EDK::ref_ptr<EDK::MaterialBasic::MaterialBasicSettings> terrain_mat_set;
+  terrain_mat_set.alloc();
   
-  float color[] = { 1.0f, 0.0f, 0.0f, 1.0f };
-  cube_mat_set->set_color(color);
+  float color[] = { 0.0f, 0.0f, 1.0f, 1.0f };
+  terrain_mat_set->set_color(color);
 
   //Allocating root node:
   EDK::Node* root = GameState.root.alloc();
@@ -77,14 +71,11 @@ void InitScene() {
   EDK::ref_ptr<EDK::Drawable> drawable;
   
   drawable.alloc();
-  drawable->set_geometry(cube_geo.get());
-  drawable->set_material(cube_mat.get());
-  drawable->set_material_settings(cube_mat_set.get());
+  drawable->set_geometry(terrain_geo.get());
+  drawable->set_material(terrain_mat.get());
+  drawable->set_material_settings(terrain_mat_set.get());
   drawable->set_position(0.0f,0.0f,0.0f);
-  /*drawable->set_HPR(360.0f * rand() / RAND_MAX,
-              360.0f * rand() / RAND_MAX, 
-              360.0f * rand() / RAND_MAX);
-*/
+
   root->addChild(drawable.get());
 
   //Allocating and initializing the camera:

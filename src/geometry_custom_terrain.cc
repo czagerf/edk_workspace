@@ -33,92 +33,95 @@ TerrainCustom& TerrainCustom::operator=(const TerrainCustom& other) {
     return *this;
 }
 
-void TerrainCustom::init(const int num_cols = 4, const int num_rows = 4,
-    const float height_mult = 1.0f, const float size = 1.0f,
-    const bool is_centered = true){
+void TerrainCustom::init(const int num_cols, const int num_rows,
+    const float height_mult, const float size,
+    const bool is_centered){
     if (is_initialized_) return;
     is_initialized_ = true;
 
-  //TODO demand graphic resources to the GPUManager.
+    num_cols_ = num_cols;
+    num_rows_ = num_rows;
+
+    //TODO demand graphic resources to the GPUManager.
     auto& GPU = *EDK::dev::GPUManager::Instance();
     GPU.newBuffer(&elements_buffer);
     GPU.newBuffer(&order_buffer);
 
   //****** Positions:
-    const int vertices = (num_cols + 1) * (num_rows + 1);
-    
-    scoped_array<esat::Vec3> positions;
-    positions.alloc(vertices);
-
-    float size_x = num_cols * size;
-    float size_y = num_rows * size;
-    float center_x = size_x / num_cols;
-    float center_y = size_y / num_rows;
-    float part_x = center_x/
-
-
-
-    0 = i*(num_cols+1) * j
-    5 = (i+1)*(num_cols+1)+j
-
-
-    for (int i = 0; i < num_cols + 1; i++) {
-        for (int j = 0; j < num_rows + 1; j++) {
-
-
-            positions[i * (j + num_rows + 1)] = { size_x ,0.0f };
-        }
-    }
-    
-
-  //****** Normals:
-    esat::Vec3 normals[4] = {
-        Vec3Normalized(position[0]),
-        Vec3Normalized(position[1]),
-        Vec3Normalized(position[2]),
-        Vec3Normalized(position[3])
-    };
-
-  //****** UVs:
-    esat::Vec2 uvs[4] = {
-        {0.0f,1.0f},
-        {0.0f,0.0f},
-        {1.0f,0.0f},
-        {1.0f,1.0f},
-    };
-
+    const int num_vertices = (num_cols + 1) * (num_rows + 1);
 
     struct Vertex {
-        esat::Vec3 pos;
-        esat::Vec3 normal;
-        esat::Vec2 uv;
+      esat::Vec3 pos;
+      esat::Vec3 normal;
+      esat::Vec2 uv;
     };
 
-    Vertex vertices[4];
+    scoped_array<Vertex> vertex;
+    vertex.alloc(num_vertices);
 
-    for (int i = 0; i < 4; i++) {
-        vertices[i] = { position[i], normals[i], uvs[i] };
+    //Centrar si es que toca
+    float half_size_x = 0.0f;
+    float half_size_y = 0.0f;
+    if (is_centered) {
+      half_size_x = num_cols * size / 2;
+      half_size_y = num_rows * size / 2;
     }
 
-  //****** Upload data:
-  //TODO initialize and upload data to the "elements_buffer".
-  //Size in bytes: 8 data per element * 1 faces * 
-  //               4 vertices per face * sizeof(float)
-  //36 attributes has a face.
-    int size = 8 * 1 * 4 * sizeof(float);
-    elements_buffer->init(EDK::dev::Buffer::Target::kTarget_Array_Buffer, size);
-    elements_buffer->uploadData(&vertices->pos.x, size, 0);
+    /*
+    Dibujo desde la esquina inferior izquierda hasta
+    esquina superior derecha. De esta forma coinciden
+    los vertices para calcular facil las UV
 
-  //****** Upload order:
-  //TODO initialize and upload data to the "order_buffer".
-    
+    Vertices        UVs
 
-    int elements_order[6] = { 0,1,2, 0,2,3 };
-    order_buffer->init(EDK::dev::Buffer::Target::kTarget_Element_Array_Buffer, sizeof(elements_order));
-    order_buffer->uploadData(elements_order, sizeof(elements_order), 0);
+    12 13 14 15   0,0.99 ....         1,1
+    8 9 10 11     0,0.66
+    4 5 6  7      0,0.33  ......
+    0 1 2  3      0,0  0.33,0  0.66,0 1,0
+    */
    
-  //Remember to order triangles in counter clockwise direction!!
-  //6 vertices per face * 1 faces * sizeof(short int)
+    for (int i = 0; i < num_rows + 1; i++) {
+      for (int j = 0; j < num_cols + 1; j++) {
+        int pos = i * (num_cols + 1) + j;
+
+        vertex[pos] = { 
+           { size * j - half_size_x ,0.0f, i * size - half_size_y},
+           {0.0f, 1.0f, 0.0f},
+           {(float)j/ num_cols, (float)i/num_rows}
+        };
+      }
+    }
+
+    int vertex_size = sizeof(Vertex) * num_vertices; 
+    elements_buffer->init(EDK::dev::Buffer::Target::kTarget_Array_Buffer, vertex_size);
+    elements_buffer->uploadData(vertex.get(), vertex_size, 0);
+
+    scoped_array<int> elements_order;
+    elements_order.alloc(num_cols* num_rows *6);
+
+    int aux = 0;
+    for (int i = 0; i < num_rows; i++) {
+      for (int j = 0; j < num_cols; j++) {
+        //Me ubico en cada quad y saco sus esquinas 
+        int up_left = i * (num_cols + 1) + j; 
+        int up_right = up_left + 1;
+        int down_left = (i + 1) * (num_cols + 1) + j;
+        int down_right = down_left + 1;
+
+        //Relleno los 6 vertices para los dos triangulos del quad
+        elements_order[aux++] = up_left;
+        elements_order[aux++] = down_left;
+        elements_order[aux++] = down_right;
+        elements_order[aux++] = up_left;
+        elements_order[aux++] = down_right;
+        elements_order[aux++] = up_right;
+      }
+    }
+
+    int elements_size = num_cols * num_rows * 6 * sizeof(int);
+
+    order_buffer->init(EDK::dev::Buffer::Target::kTarget_Element_Array_Buffer, elements_size);
+    order_buffer->uploadData(elements_order.get(), elements_size, 0);
 }
 
 const bool TerrainCustom::bindAttribute(const Attribute a,
@@ -128,7 +131,7 @@ const bool TerrainCustom::bindAttribute(const Attribute a,
 
     switch (a) {
         case Attribute::A_POSITION:
-            GPU::Instance()->enableVertexAttribute(elements_buffer.get(), where_to_bind_attribute, EDK::Type::T_FLOAT_3, false,0 * sizeof(float), 8 * sizeof(float));
+            GPU::Instance()->enableVertexAttribute(elements_buffer.get(), where_to_bind_attribute, EDK::Type::T_FLOAT_3, false,0 * sizeof(float), 8*sizeof(float));
             return true;
             break;
         case Attribute::A_NORMAL:
@@ -146,7 +149,7 @@ const bool TerrainCustom::bindAttribute(const Attribute a,
 void TerrainCustom::render() const {
   
     typedef EDK::dev::GPUManager GPU;
-    GPU::Instance()->drawElements(GPU::DrawMode::kDrawMode_Triangles,6,
+    GPU::Instance()->drawElements(GPU::DrawMode::kDrawMode_Triangles, num_cols_ * num_rows_ * 6,
                                   order_buffer.get(), EDK::Type::T_UINT,0);
 }
 
