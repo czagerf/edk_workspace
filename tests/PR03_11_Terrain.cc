@@ -26,10 +26,9 @@
 #include "ESAT_extra/imgui.h"
 #include "EDK/dev/edk_opengl.h"
 
-#include "material_basic.h"
+#include "material_custom.h"
 
 #include "geometry_custom_terrain.h"
-
 
 //Unnamed struct and it's unique instance:
 struct {
@@ -52,17 +51,14 @@ void InitScene() {
   //Creating a cube:
   EDK::ref_ptr<EDK::TerrainCustom> terrain_geo;
   terrain_geo.alloc();
-  terrain_geo->init();
+  terrain_geo->init(10,10);
 
   //Initializing the material and its settings:
-  EDK::ref_ptr<EDK::MaterialBasic> terrain_mat;
+  EDK::ref_ptr<EDK::MaterialCustom> terrain_mat;
   terrain_mat.alloc();
-  terrain_mat->init();
-  EDK::ref_ptr<EDK::MaterialBasic::MaterialBasicSettings> terrain_mat_set;
+  terrain_mat->init("./test/vertex_normal.vs", "./test/fragment_normal.fs");
+  EDK::ref_ptr<EDK::MaterialCustom::MaterialCustomSettings> terrain_mat_set;
   terrain_mat_set.alloc();
-  
-  float color[] = { 0.0f, 0.0f, 1.0f, 1.0f };
-  terrain_mat_set->set_color(color);
 
   //Allocating root node:
   EDK::Node* root = GameState.root.alloc();
@@ -79,7 +75,7 @@ void InitScene() {
   root->addChild(drawable.get());
 
   //Allocating and initializing the camera:
-  float pos[] = { 0.0f, 2.0f, 5.0f };
+  float pos[] = { 0.0f, 2.0f, 10.0f };
   float target[] = { 0.0f, 0.0f, 0.0f };
   float ar = (float) kWindowWidth / (float) kWindowHeight;
   GameState.camera.alloc();
